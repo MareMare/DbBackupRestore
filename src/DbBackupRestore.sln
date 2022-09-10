@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目", "ソリューション項目", "{AF9428A9-6A33-4866-8340-DFEAECAD6EEF}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		stylecop.json = stylecop.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackupSqlDatabase", "BackupSqlDatabase\BackupSqlDatabase.csproj", "{2471703E-7DFB-485F-B535-4FA71AA3CC99}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestoreSqlDatabase", "RestoreSqlDatabase\RestoreSqlDatabase.csproj", "{2BE36023-9E99-45D8-B802-7697DCEA4CE7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlDatabaseToolkit", "SqlDatabaseToolkit\SqlDatabaseToolkit.csproj", "{AC9E6B45-46EE-466C-8E81-25FCAD572011}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2471703E-7DFB-485F-B535-4FA71AA3CC99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2471703E-7DFB-485F-B535-4FA71AA3CC99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2471703E-7DFB-485F-B535-4FA71AA3CC99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2471703E-7DFB-485F-B535-4FA71AA3CC99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BE36023-9E99-45D8-B802-7697DCEA4CE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BE36023-9E99-45D8-B802-7697DCEA4CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BE36023-9E99-45D8-B802-7697DCEA4CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BE36023-9E99-45D8-B802-7697DCEA4CE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC9E6B45-46EE-466C-8E81-25FCAD572011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC9E6B45-46EE-466C-8E81-25FCAD572011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC9E6B45-46EE-466C-8E81-25FCAD572011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC9E6B45-46EE-466C-8E81-25FCAD572011}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {145F2308-6035-475E-B415-9D8A38FE04EC}
+	EndGlobalSection
+EndGlobal
