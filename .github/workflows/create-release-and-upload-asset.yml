@@ -1,0 +1,80 @@
+name: Create Release and Upload Asset
+
+# https://github.com/actions/upload-release-asset
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: windows-latest
+    
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: ✨ Set up .NET 6.0
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
+    
+      - name: 🚚 Restore dependencies
+        working-directory: src
+        run: dotnet restore
+
+      - name: 🛠️ Build
+        working-directory: src
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 🚀 Publish BackupSqlDatabase
+        shell: pwsh
+        run: |
+          dotnet publish .\src\BackupSqlDatabase\BackupSqlDatabase.csproj --configuration Release --output out\BackupSqlDatabase --runtime win-x64 --self-contained true
+          rm out\BackupSqlDatabase\*.pdb
+          Compress-Archive -Path "out\BackupSqlDatabase\*.*" -DestinationPath "out\BackupSqlDatabase-win-x64.zip"
+
+      - name: 🚀 Publish RestoreSqlDatabase
+        shell: pwsh
+        run: |
+          dotnet publish .\src\RestoreSqlDatabase\RestoreSqlDatabase.csproj --configuration Release --output out\RestoreSqlDatabase --runtime win-x64 --self-contained true
+          rm out\RestoreSqlDatabase\*.pdb
+          Compress-Archive -Path "out\RestoreSqlDatabase\*.*" -DestinationPath "out\RestoreSqlDatabase-win-x64.zip"
+
+      - name: 📝 Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            TBD
+          draft: true
+          prerelease: true
+
+      - name: 🚢 Upload BackupSqlDatabase Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: out\BackupSqlDatabase-win-x64.zip
+          asset_name: BackupSqlDatabase-win-x64.zip
+          asset_content_type: application/zip
+
+      - name: 🚢 Upload RestoreSqlDatabase Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: out\RestoreSqlDatabase-win-x64.zip
+          asset_name: RestoreSqlDatabase-win-x64.zip
+          asset_content_type: application/zip
