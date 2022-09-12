@@ -106,6 +106,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             .ToString();
 
         var connection = new SqlConnection(this._connectionString);
+        var commandTimeoutSeconds = this._options.CommandTimeoutSeconds;
         try
         {
             this._logger?.LogDebug("完全バックアップを開始します。{Database} {Backup}", databaseName, backupFilePath);
@@ -114,7 +115,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
                     sql,
                     new { databaseName, description, backupFilePath },
                     commandType: CommandType.Text,
-                    commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
+                    commandTimeout: commandTimeoutSeconds)
                 .ConfigureAwait(false);
             this._logger?.LogInformation("完全バックアップが完了しました。{Database} {Backup}", databaseName, backupFilePath);
         }
@@ -151,13 +152,21 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
                 backupFilePath,
                 restoreDirectoryPath);
 
+            var commandTimeoutSeconds = this._options.CommandTimeoutSeconds;
             var pairs = await GetFilePairsAsync(
                     this._connectionString,
                     backupFilePath,
                     restoreDirectoryPath,
+                    commandTimeoutSeconds,
                     cancellationToken)
                 .ConfigureAwait(false);
-            await RestoreCurrentlyAsync(this._connectionString, databaseName, backupFilePath, pairs, cancellationToken)
+            await RestoreCurrentlyAsync(
+                    this._connectionString,
+                    databaseName,
+                    backupFilePath,
+                    pairs,
+                    commandTimeoutSeconds,
+                    cancellationToken)
                 .ConfigureAwait(false);
 
             this._logger?.LogInformation(
@@ -184,6 +193,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             string connectionString,
             string backupFilePath,
             string restoreDirectoryPath,
+            int commandTimeoutSeconds,
             CancellationToken cancellationToken = default)
         {
             var connection = new SqlConnection(connectionString);
@@ -198,7 +208,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
                         sql,
                         new { backupFilePath },
                         commandType: CommandType.Text,
-                        commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
+                        commandTimeout: commandTimeoutSeconds)
                     .ConfigureAwait(false);
 
                 var results = records
@@ -224,6 +234,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             string databaseName,
             string backupFilePath,
             IEnumerable<(string LogicalName, string PhysicalName, string MoveToFilePath)> filePairs,
+            int commandTimeoutSeconds,
             CancellationToken cancellationToken = default)
         {
             var builder = new StringBuilder()
@@ -245,18 +256,18 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
                 await connection.ExecuteAsync(
                         $"ALTER DATABASE [{databaseName}] SET OFFLINE WITH ROLLBACK IMMEDIATE",
                         commandType: CommandType.Text,
-                        commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
+                        commandTimeout: commandTimeoutSeconds)
                     .ConfigureAwait(false);
                 await connection.ExecuteAsync(
                         sql,
                         new { databaseName, backupFilePath },
                         commandType: CommandType.Text,
-                        commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
+                        commandTimeout: commandTimeoutSeconds)
                     .ConfigureAwait(false);
                 await connection.ExecuteAsync(
                         $"ALTER DATABASE [{databaseName}] SET ONLINE",
                         commandType: CommandType.Text,
-                        commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
+                        commandTimeout: commandTimeoutSeconds)
                     .ConfigureAwait(false);
             }
             finally
