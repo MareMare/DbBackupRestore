@@ -14,19 +14,25 @@ using Microsoft.Extensions.Options;
 
 namespace SqlDatabaseToolkit;
 
-public interface ISqlDatabaseToolkit
-{
-    Task BackupAsync(CancellationToken cancellationToken = default);
-
-    Task RestoreAsync(CancellationToken cancellationToken = default);
-}
-
+/// <summary>
+/// SQL Server 用のツールキットを表します。
+/// </summary>
 internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
 {
+    /// <summary>オプション構成を表します。</summary>
     private readonly SqlDatabaseOptions _options;
+
+    /// <summary>接続文字列を表します。</summary>
     private readonly string _connectionString;
+
+    /// <summary><see cref="ILogger{TCategory}" /> を表します。</summary>
     private readonly ILogger<SqlDatabaseToolkit>? _logger;
 
+    /// <summary>
+    /// <see cref="SqlDatabaseToolkit" /> クラスの新しいインスタンスを初期化します。
+    /// </summary>
+    /// <param name="options"><see cref="IOptions{SqlDatabaseOptions}" />。</param>
+    /// <param name="logger"><see cref="ILogger{SqlDatabaseToolkit}" />。</param>
     public SqlDatabaseToolkit(IOptions<SqlDatabaseOptions> options, ILogger<SqlDatabaseToolkit>? logger = null)
     {
         var option = this._options = options.Value;
@@ -75,6 +81,13 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
         }
     }
 
+    /// <summary>
+    /// 非同期操作として、バックアップを行います。
+    /// </summary>
+    /// <param name="databaseName">データベース名。</param>
+    /// <param name="backupFilePath">バックアップファイルパス。</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken" />。</param>
+    /// <returns>完了を表す <see cref="Task" />。</returns>
     private async Task BackupCoreAsync(
         string databaseName,
         string backupFilePath,
@@ -98,8 +111,8 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             this._logger?.LogDebug("完全バックアップを開始します。{Database} {Backup}", databaseName, backupFilePath);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             await connection.ExecuteAsync(
-                    sql: sql,
-                    param: new { databaseName, description, backupFilePath },
+                    sql,
+                    new { databaseName, description, backupFilePath },
                     commandType: CommandType.Text,
                     commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
                 .ConfigureAwait(false);
@@ -116,6 +129,14 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
         }
     }
 
+    /// <summary>
+    /// 非同期操作として、バックアップファイルからのリストアを行います。
+    /// </summary>
+    /// <param name="databaseName">データベース名。</param>
+    /// <param name="backupFilePath">バックアップファイルパス。</param>
+    /// <param name="restoreDirectoryPath">リストア先のディレクトリパス。</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken" />。</param>
+    /// <returns>完了を表す <see cref="Task" />。</returns>
     private async Task RestoreCoreAsync(
         string databaseName,
         string backupFilePath,
@@ -124,7 +145,11 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
     {
         try
         {
-            this._logger?.LogDebug("リストアを開始します。{Database} {Backup} --> {Restore}", databaseName, backupFilePath, restoreDirectoryPath);
+            this._logger?.LogDebug(
+                "リストアを開始します。{Database} {Backup} --> {Restore}",
+                databaseName,
+                backupFilePath,
+                restoreDirectoryPath);
 
             var pairs = await GetFilePairsAsync(
                     this._connectionString,
@@ -132,9 +157,14 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
                     restoreDirectoryPath,
                     cancellationToken)
                 .ConfigureAwait(false);
-            await RestoreCurrentlyAsync(this._connectionString, databaseName, backupFilePath, pairs, cancellationToken).ConfigureAwait(false);
+            await RestoreCurrentlyAsync(this._connectionString, databaseName, backupFilePath, pairs, cancellationToken)
+                .ConfigureAwait(false);
 
-            this._logger?.LogInformation("リストアが完了しました。{Database} {Backup} --> {Restore}", databaseName, backupFilePath, restoreDirectoryPath);
+            this._logger?.LogInformation(
+                "リストアが完了しました。{Database} {Backup} --> {Restore}",
+                databaseName,
+                backupFilePath,
+                restoreDirectoryPath);
         }
         catch (Exception ex)
         {
@@ -147,12 +177,10 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             throw;
         }
 
-        static string ResolveNewPhysicalPath(string originalFilePath, string moveToDirectory)
-        {
-            return Path.Combine(moveToDirectory, Path.GetFileName(originalFilePath));
-        }
+        static string ResolveNewPhysicalPath(string originalFilePath, string moveToDirectory) =>
+            Path.Combine(moveToDirectory, Path.GetFileName(originalFilePath));
 
-        static async Task<(string logicalName, string physicalName, string moveToFilePath)[]> GetFilePairsAsync(
+        static async Task<(string LogicalName, string PhysicalName, string MoveToFilePath)[]> GetFilePairsAsync(
             string connectionString,
             string backupFilePath,
             string restoreDirectoryPath,
@@ -167,8 +195,8 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
 
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 var records = await connection.QueryAsync(
-                        sql: sql,
-                        param: new { backupFilePath },
+                        sql,
+                        new { backupFilePath },
                         commandType: CommandType.Text,
                         commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
                     .ConfigureAwait(false);
@@ -195,7 +223,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             string connectionString,
             string databaseName,
             string backupFilePath,
-            (string logicalName, string physicalName, string moveToFilePath)[] filePairs,
+            IEnumerable<(string LogicalName, string PhysicalName, string MoveToFilePath)> filePairs,
             CancellationToken cancellationToken = default)
         {
             var builder = new StringBuilder()
@@ -215,18 +243,18 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             {
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 await connection.ExecuteAsync(
-                        sql: $"ALTER DATABASE [{databaseName}] SET OFFLINE WITH ROLLBACK IMMEDIATE",
+                        $"ALTER DATABASE [{databaseName}] SET OFFLINE WITH ROLLBACK IMMEDIATE",
                         commandType: CommandType.Text,
                         commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
                     .ConfigureAwait(false);
                 await connection.ExecuteAsync(
-                        sql: sql,
-                        param: new { databaseName, backupFilePath, },
+                        sql,
+                        new { databaseName, backupFilePath },
                         commandType: CommandType.Text,
                         commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
                     .ConfigureAwait(false);
                 await connection.ExecuteAsync(
-                        sql: $"ALTER DATABASE [{databaseName}] SET ONLINE",
+                        $"ALTER DATABASE [{databaseName}] SET ONLINE",
                         commandType: CommandType.Text,
                         commandTimeout: (int?)TimeSpan.FromSeconds(10).TotalSeconds)
                     .ConfigureAwait(false);
