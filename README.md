@@ -32,6 +32,7 @@ SQL Server データベースの完全バックアップ、および新しい場
     "ConnectionString": "Data Source=localhost;Integrated Security=True",
     "BackupDirectory": "C:\\DB\\BACKUP",
     "RestoreDirectory": "C:\\DB\\RESTORE",
+    "CommandTimeoutSeconds": 60,
     "Databases": [
       { "Name": "DB1" },
       { "Name": "DB2" },
@@ -52,6 +53,7 @@ SQL Server データベースの完全バックアップ、および新しい場
     "ConnectionString": "Data Source=localhost;Integrated Security=True",
     "BackupDirectory": "C:\\DB\\BACKUP",
     "RestoreDirectory": "C:\\DB\\RESTORE",
+    "CommandTimeoutSeconds": 60,
     "Databases": [
       { "Name": "DB1" },
       { "Name": "DB2" },
@@ -76,6 +78,7 @@ SQL Server データベースの完全バックアップ、および新しい場
 |ConnectionString|接続文字列|`Data Source=localhost;Integrated Security=True`||
 |BackupDirectory|`*.bak` の格納先フォルダ|`C:\\DB\\BACKUP`|ローカルフォルダのみ|
 |RestoreDirectory|`*.bak` の復元先フォルダ|`C:\\DB\\RESTORE`|ローカルフォルダのみ、要アクセス権|
+|CommandTimeoutSeconds|コマンドタイムアウト秒|60|既定値は60秒|
 |Databases|データベース設定の配列||
 |Databases:Name|データベース名|`DB1`|
 

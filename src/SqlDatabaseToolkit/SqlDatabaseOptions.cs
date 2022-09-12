@@ -46,6 +46,15 @@ public class SqlDatabaseOptions
     public string RestoreDirectory { get; set; } = null!;
 
     /// <summary>
+    /// コマンドタイムアウト秒を取得または設定します。
+    /// </summary>
+    /// <value>
+    /// 値を表す <see cref="int" /> 型。
+    /// <para>コマンドタイムアウト秒。既定値は <see langword="60" /> です。</para>
+    /// </value>
+    public int CommandTimeoutSeconds { get; set; } = 60;
+
+    /// <summary>
     /// データベース設定のコレクションを取得または設定します。
     /// </summary>
     /// <value>
