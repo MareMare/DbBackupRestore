@@ -55,6 +55,15 @@ public class SqlDatabaseOptions
     public string RestoreDirectory { get; set; } = null!;
 
     /// <summary>
+    /// 圧縮ファイル格納先のディレクトリパスを取得または設定します。
+    /// </summary>
+    /// <value>
+    /// 値を表す <see cref="string" /> 型。
+    /// <para>圧縮ファイル格納先のディレクトリパス。既定値は <see langword="null" /> です。</para>
+    /// </value>
+    public string ArchiveDirectory { get; set; } = null!;
+
+    /// <summary>
     /// コマンドタイムアウト秒を取得または設定します。
     /// </summary>
     /// <value>

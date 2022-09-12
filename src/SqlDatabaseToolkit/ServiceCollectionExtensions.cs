@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
 
         return services
             .Configure<SqlDatabaseOptions>(configuration.GetSection(SqlDatabaseOptions.Key))
+            .AddTransient<IBackupFileStore, BackupFileStore>()
             .AddTransient<ISqlDatabaseToolkit, SqlDatabaseToolkit>();
     }
 }
