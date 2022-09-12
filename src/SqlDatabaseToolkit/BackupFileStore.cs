@@ -161,5 +161,6 @@ internal class BackupFileStore : IBackupFileStore
         var zipFileName = Path.GetFileName(zipFilePath);
         var filePathToUpload = Path.Combine(this._options.ArchiveDirectory, zipFileName);
         File.Copy(zipFilePath, filePathToUpload);
+        this._logger?.LogInformation("圧縮ファイルをアップロードしました。{FileName}", zipFileName);
     }
 }
