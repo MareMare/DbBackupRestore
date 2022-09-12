@@ -41,6 +41,7 @@ SQL Server データベースの完全バックアップ、および新しい場
     "SqlServerAccount": "MSSQL$SQLEXPRESS",
     "BackupDirectory": "C:\\DB\\BACKUP",
     "RestoreDirectory": "C:\\DB\\RESTORE",
+    "ArchiveDirectory": "\\\\fileserver\\share\\backup",
     "CommandTimeoutSeconds": 60,
     "Databases": [
       { "Name": "DB1" },
@@ -63,6 +64,7 @@ SQL Server データベースの完全バックアップ、および新しい場
     "SqlServerAccount": "MSSQL$SQLEXPRESS",
     "BackupDirectory": "C:\\DB\\BACKUP",
     "RestoreDirectory": "C:\\DB\\RESTORE",
+    "ArchiveDirectory": "\\\\fileserver\\share\\backup",
     "CommandTimeoutSeconds": 60,
     "Databases": [
       { "Name": "DB1" },
@@ -89,6 +91,7 @@ SQL Server データベースの完全バックアップ、および新しい場
 |SqlServerAccount|SQL Server サービスアカウント|`MSSQL$SQLEXPRESS`|既定値は`MSSQL$SQLEXPRESS`|
 |BackupDirectory|`*.bak` の格納先フォルダ|`C:\\DB\\BACKUP`|ローカルフォルダのみ|
 |RestoreDirectory|`*.bak` の復元先フォルダ|`C:\\DB\\RESTORE`|ローカルフォルダのみ、要アクセス権|
+|ArchiveDirectory|`*.zip` の格納先フォルダ|`\\\\fileserver\\share\\backup`||
 |CommandTimeoutSeconds|コマンドタイムアウト秒|60|既定値は60秒|
 |Databases|データベース設定の配列||
 |Databases:Name|データベース名|`DB1`|

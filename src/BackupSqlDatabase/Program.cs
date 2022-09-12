@@ -14,3 +14,6 @@ using var host = Host.CreateDefaultBuilder(args)
     .Build();
 var toolkit = host.Services.GetRequiredService<ISqlDatabaseToolkit>();
 await toolkit.BackupAsync().ConfigureAwait(false);
+
+var fileStore = host.Services.GetRequiredService<IBackupFileStore>();
+await fileStore.UploadAsync(DateTime.Now).ConfigureAwait(false);
