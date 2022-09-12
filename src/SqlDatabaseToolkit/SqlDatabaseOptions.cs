@@ -28,6 +28,15 @@ public class SqlDatabaseOptions
     public string ConnectionString { get; set; } = null!;
 
     /// <summary>
+    /// SQL Server のサービスアカウント名を取得または設定します。
+    /// </summary>
+    /// <value>
+    /// 値を表す <see cref="string" /> 型。
+    /// <para>SQL Server のサービスアカウント名。既定値は <see langword="MSSQL$SQLEXPRESS" /> です。</para>
+    /// </value>
+    public string SqlServerAccount { get; set; } = @"MSSQL$SQLEXPRESS";
+
+    /// <summary>
     /// バックアップ先のディレクトリパスを取得または設定します。
     /// </summary>
     /// <value>

@@ -7,6 +7,9 @@
 
 using System.Data;
 using System.Data.SqlClient;
+using System.Runtime.Versioning;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using Dapper;
 using Microsoft.Extensions.Logging;
@@ -41,13 +44,10 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
     }
 
     /// <inheritdoc />
+    [SupportedOSPlatform("windows")]
     public async Task BackupAsync(CancellationToken cancellationToken = default)
     {
-        var directory = Path.GetDirectoryName(this._options.BackupDirectory) ?? string.Empty;
-        if (!Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
+        SqlDatabaseToolkit.PrepareDirectory(this._options.SqlServerAccount, this._options.BackupDirectory);
 
         foreach (var database in this._options.Databases)
         {
@@ -61,13 +61,10 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
     }
 
     /// <inheritdoc />
+    [SupportedOSPlatform("windows")]
     public async Task RestoreAsync(CancellationToken cancellationToken = default)
     {
-        var directory = Path.GetDirectoryName(this._options.RestoreDirectory) ?? string.Empty;
-        if (!Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
+        SqlDatabaseToolkit.PrepareDirectory(this._options.SqlServerAccount, this._options.RestoreDirectory);
 
         foreach (var database in this._options.Databases)
         {
@@ -79,6 +76,33 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
                     cancellationToken)
                 .ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// 指定されたディレクトリに SQL Server に対するフルコントロールのアクセス権を付与します。
+    /// </summary>
+    /// <param name="sqlServerAccount">SQL Server のサービスアカウント名。</param>
+    /// <param name="directory">ディレクトリパス。</param>
+    [SupportedOSPlatform("windows")]
+    private static void PrepareDirectory(string sqlServerAccount, string directory)
+    {
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        // https://docs.microsoft.com/ja-jp/dotnet/api/system.security.accesscontrol.directorysecurity?view=net-6.0
+        var directoryInfo = new DirectoryInfo(directory);
+        var rule = new FileSystemAccessRule(
+            new NTAccount(sqlServerAccount),
+            FileSystemRights.FullControl,
+            InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
+            PropagationFlags.None,
+            AccessControlType.Allow);
+        var security = directoryInfo.GetAccessControl();
+        security.RemoveAccessRule(rule);
+        security.AddAccessRule(rule);
+        directoryInfo.SetAccessControl(security);
     }
 
     /// <summary>
