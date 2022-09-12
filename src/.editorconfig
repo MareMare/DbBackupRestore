@@ -121,6 +121,7 @@ dotnet_diagnostic.SA1629.severity = none
 dotnet_diagnostic.SA1642.severity = none
 # SA1643: Destructor summary documentation should begin with standard text
 dotnet_diagnostic.SA1643.severity = none
+csharp_style_prefer_top_level_statements = true:silent
 
 [*.vb]
 #### 命名スタイル ####

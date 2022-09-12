@@ -10,21 +10,7 @@ using Microsoft.Extensions.Hosting;
 using SqlDatabaseToolkit;
 
 using var host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(ConfigureServices)
+    .ConfigureServices((hostContext, services) => services.AddSqlDatabaseToolkit(hostContext.Configuration))
     .Build();
 var toolkit = host.Services.GetRequiredService<ISqlDatabaseToolkit>();
-try
-{
-    await toolkit.RestoreAsync().ConfigureAwait(false);
-    return 0;
-}
-catch
-{
-    return -1;
-}
-
-static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
-{
-    var configuration = hostContext.Configuration;
-    services.AddSqlDatabaseToolkit(configuration);
-}
+await toolkit.RestoreAsync().ConfigureAwait(false);
