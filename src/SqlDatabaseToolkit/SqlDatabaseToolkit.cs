@@ -38,9 +38,9 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
     /// <param name="logger"><see cref="ILogger{SqlDatabaseToolkit}" />。</param>
     public SqlDatabaseToolkit(IOptions<SqlDatabaseOptions> options, ILogger<SqlDatabaseToolkit>? logger = null)
     {
-        var option = this._options = options.Value;
-        this._connectionString = option.ConnectionString;
+        this._options = options.Value;
         this._logger = logger;
+        this._connectionString = this._options.ConnectionString;
     }
 
     /// <inheritdoc />
@@ -51,7 +51,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
 
         foreach (var database in this._options.Databases)
         {
-            var backupFilePath = Path.Combine(this._options.BackupDirectory, $"{database.Name}.bak");
+            var backupFilePath = database.ResolveBackupFilePath(this._options.BackupDirectory);
             await this.BackupCoreAsync(
                     database.Name,
                     backupFilePath,
@@ -68,7 +68,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
 
         foreach (var database in this._options.Databases)
         {
-            var backupFilePath = Path.Combine(this._options.BackupDirectory, $"{database.Name}.bak");
+            var backupFilePath = database.ResolveBackupFilePath(this._options.BackupDirectory);
             await this.RestoreCoreAsync(
                     database.Name,
                     backupFilePath,
