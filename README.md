@@ -10,6 +10,17 @@ SQL Server データベースの完全バックアップ、および新しい場
     ```ps1
     .\BackupSqlDatabase.exe
     ```
+* 実行されるSQL例
+  ```sql
+  BACKUP DATABASE @databaseName
+    TO DISK = @backupFilePath WITH NOFORMAT
+  , NAME = @description
+  , INIT
+  , SKIP
+  , NOREWIND
+  , NOUNLOAD
+  , STATS = 10;
+  ```
 
 ## データベースの新しい場所への復元
 
@@ -19,6 +30,21 @@ SQL Server データベースの完全バックアップ、および新しい場
     ```ps1
     .\RestoreSqlDatabase.exe
     ```
+* 実行されるSQL例
+  ```sql
+  RESTORE FILELISTONLY FROM DISK = @backupFilePath;
+
+  ALTER DATABASE @databaseName SET OFFLINE WITH ROLLBACK IMMEDIATE;
+
+  RESTORE DATABASE @databaseName
+    FROM DISK = @backupFilePath WITH REPLACE
+  , NOUNLOAD
+  , STATS = 5
+  , MOVE N'{logicalName1}' TO N'{moveToFilePath1}'
+  , MOVE N'{logicalName2}' TO N'{moveToFilePath2}';
+
+  ALTER DATABASE @databaseName SET ONLINE;
+  ```
 
 ## バックアップ先と復元先フォルダのアクセス権について
 バックアップ先と復元先フォルダには SQL Server に対してアクセス許可を与える必要があります。

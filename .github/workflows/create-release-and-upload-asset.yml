@@ -32,19 +32,13 @@ jobs:
         working-directory: src
         run: dotnet build --configuration Release --no-restore
 
-      - name: 🚀 Publish BackupSqlDatabase
+      - name: 🚀 Publish
         shell: pwsh
         run: |
-          dotnet publish .\src\BackupSqlDatabase\BackupSqlDatabase.csproj --configuration Release --output out\BackupSqlDatabase --runtime win-x64 --self-contained true
-          rm out\BackupSqlDatabase\*.pdb
-          Compress-Archive -Path "out\BackupSqlDatabase\*.*" -DestinationPath "out\BackupSqlDatabase-win-x64.zip"
-
-      - name: 🚀 Publish RestoreSqlDatabase
-        shell: pwsh
-        run: |
-          dotnet publish .\src\RestoreSqlDatabase\RestoreSqlDatabase.csproj --configuration Release --output out\RestoreSqlDatabase --runtime win-x64 --self-contained true
-          rm out\RestoreSqlDatabase\*.pdb
-          Compress-Archive -Path "out\RestoreSqlDatabase\*.*" -DestinationPath "out\RestoreSqlDatabase-win-x64.zip"
+          dotnet publish .\src\BackupSqlDatabase\BackupSqlDatabase.csproj --configuration Release --output out --runtime win-x64 --self-contained true
+          dotnet publish .\src\RestoreSqlDatabase\RestoreSqlDatabase.csproj --configuration Release --output out --runtime win-x64 --self-contained true
+          rm out\*.pdb
+          Compress-Archive -Path "out\*.*" -DestinationPath "out\DbBackupRestore-win-x64.zip"
 
       - name: 📝 Create Release
         id: create_release
@@ -59,22 +53,12 @@ jobs:
           draft: true
           prerelease: true
 
-      - name: 🚢 Upload BackupSqlDatabase Release Asset
+      - name: 🚢 Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: out\BackupSqlDatabase-win-x64.zip
-          asset_name: BackupSqlDatabase-win-x64.zip
-          asset_content_type: application/zip
-
-      - name: 🚢 Upload RestoreSqlDatabase Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: out\RestoreSqlDatabase-win-x64.zip
-          asset_name: RestoreSqlDatabase-win-x64.zip
+          asset_path: out\DbBackupRestore-win-x64.zip
+          asset_name: DbBackupRestore-win-x64.zip
           asset_content_type: application/zip
