@@ -13,6 +13,11 @@ namespace SqlDatabaseToolkit;
 public interface IBackupFileStore
 {
     /// <summary>
+    /// バックアップファイルをストアからダウンロードします。
+    /// </summary>
+    void Download();
+
+    /// <summary>
     /// 非同期操作として、バックアップファイルをストアへアップロードします。
     /// </summary>
     /// <param name="timestamp">バックアップ日時。</param>
