@@ -145,7 +145,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
         }
         catch (Exception ex)
         {
-            this._logger?.LogWarning(ex, "完全バックアップ中に例外が発生しました。{Database} {Backup}", databaseName, backupFilePath);
+            this._logger?.LogError(ex, "完全バックアップ中に例外が発生しました。{Database} {Backup}", databaseName, backupFilePath);
             throw;
         }
         finally
@@ -201,7 +201,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
         }
         catch (Exception ex)
         {
-            this._logger?.LogWarning(
+            this._logger?.LogError(
                 ex,
                 "リストア中に例外が発生しました。{Database} {Backup} --> {Restore}",
                 databaseName,
