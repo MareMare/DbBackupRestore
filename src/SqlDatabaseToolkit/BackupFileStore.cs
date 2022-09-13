@@ -36,9 +36,41 @@ internal class BackupFileStore : IBackupFileStore
     }
 
     /// <inheritdoc />
+    public void Download()
+    {
+        if (string.IsNullOrEmpty(this._options.ArchiveDirectory))
+        {
+            this._logger?.LogInformation("圧縮ファイル格納先のディレクトリパスが未指定なのでダウンロードしません。");
+            return;
+        }
+
+        BackupFileStore.PrepareDirectory(this._options.ArchiveDirectory);
+        BackupFileStore.PrepareDirectory(this._options.BackupDirectory);
+
+        var zipFileName = BackupFileStore.ResolveZipFileName();
+        var searchPattern = Regex.Replace(zipFileName, @"[\d]", _ => "?");
+        var foundFileInfo = Directory.EnumerateFiles(this._options.ArchiveDirectory, searchPattern, SearchOption.TopDirectoryOnly)
+            .Select(path => new FileInfo(path))
+            .MaxBy(fi => fi.LastWriteTime);
+        if (foundFileInfo is null)
+        {
+            return;
+        }
+
+        ZipFile.ExtractToDirectory(foundFileInfo.FullName, this._options.BackupDirectory, true);
+        this._logger?.LogInformation("圧縮ファイルをダウンロードしました。{FileName}", zipFileName);
+    }
+
+    /// <inheritdoc />
     public async Task UploadAsync(DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var zipFileName = $"Backup_{timestamp:yyyyMMddHHmm}.zip";
+        if (string.IsNullOrEmpty(this._options.ArchiveDirectory))
+        {
+            this._logger?.LogInformation("圧縮ファイル格納先のディレクトリパスが未指定なのでアップロードしません。");
+            return;
+        }
+
+        var zipFileName = BackupFileStore.ResolveZipFileName(timestamp);
         var zipFilePath = Path.Combine(this._options.BackupDirectory, zipFileName);
         var zipFilePathToUpload = Path.Combine(this._options.ArchiveDirectory, zipFileName);
 
@@ -47,7 +79,6 @@ internal class BackupFileStore : IBackupFileStore
             .Select(path => new FileInfo(path))
             .Where(fi => fi.Exists)
             .ToArray();
-
         try
         {
             BackupFileStore.DeleteFileSafely(zipFilePath);
@@ -88,6 +119,14 @@ internal class BackupFileStore : IBackupFileStore
             throw;
         }
     }
+
+    /// <summary>
+    /// 圧縮ファイル名を解決します。
+    /// </summary>
+    /// <param name="timestamp">日時。</param>
+    /// <returns>圧縮ファイル名。</returns>
+    private static string ResolveZipFileName(DateTime? timestamp = null) =>
+        $"Backup_{(timestamp ?? DateTime.Now):yyyyMMddHHmm}.zip";
 
     /// <summary>
     /// 安全にファイルを削除します。

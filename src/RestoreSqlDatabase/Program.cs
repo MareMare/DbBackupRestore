@@ -12,5 +12,9 @@ using SqlDatabaseToolkit;
 using var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) => services.AddSqlDatabaseToolkit(hostContext.Configuration))
     .Build();
+
+var fileStore = host.Services.GetRequiredService<IBackupFileStore>();
+fileStore.Download();
+
 var toolkit = host.Services.GetRequiredService<ISqlDatabaseToolkit>();
 await toolkit.RestoreAsync().ConfigureAwait(false);
