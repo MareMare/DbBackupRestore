@@ -126,7 +126,7 @@ internal class BackupFileStore : IBackupFileStore
     /// <param name="timestamp">日時。</param>
     /// <returns>圧縮ファイル名。</returns>
     private static string ResolveZipFileName(DateTime? timestamp = null) =>
-        $"Backup_{(timestamp ?? DateTime.Now):yyyyMMddHHmm}.zip";
+        $"Backup_{timestamp ?? DateTime.Now:yyyyMMddHHmm}.zip";
 
     /// <summary>
     /// 安全にファイルを削除します。
