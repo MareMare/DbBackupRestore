@@ -122,7 +122,7 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
             .Append("BACKUP DATABASE @databaseName")
             .Append(" TO DISK = @backupFilePath WITH NOFORMAT")
             .Append(", NAME = @description")
-            .Append(", NOINIT")
+            .Append(", INIT") // 既存のすべてのバックアップセットを上書き
             .Append(", SKIP")
             .Append(", NOREWIND")
             .Append(", NOUNLOAD")
