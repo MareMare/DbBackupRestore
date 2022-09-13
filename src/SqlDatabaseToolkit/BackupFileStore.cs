@@ -7,6 +7,7 @@
 
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -37,34 +38,54 @@ internal class BackupFileStore : IBackupFileStore
     /// <inheritdoc />
     public async Task UploadAsync(DateTime timestamp, CancellationToken cancellationToken = default)
     {
-        var zipFileName = $"{timestamp:yyyyMMddHHmm}.zip";
+        var zipFileName = $"Backup_{timestamp:yyyyMMddHHmm}.zip";
         var zipFilePath = Path.Combine(this._options.BackupDirectory, zipFileName);
+        var zipFilePathToUpload = Path.Combine(this._options.ArchiveDirectory, zipFileName);
 
         var backupFileInfos = this._options.Databases
             .Select(database => database.ResolveBackupFilePath(this._options.BackupDirectory))
             .Select(path => new FileInfo(path))
             .Where(fi => fi.Exists)
             .ToArray();
+
         try
         {
-            BackupFileStore.DeleteSafely(zipFilePath);
+            BackupFileStore.DeleteFileSafely(zipFilePath);
             await this.CompressCoreAsync(zipFilePath, backupFileInfos, cancellationToken).ConfigureAwait(false);
             this._logger?.LogInformation("圧縮ファイルを生成しました。{FileName}", zipFileName);
         }
         catch (Exception ex)
         {
-            this._logger?.LogWarning(ex, "圧縮ファイルの生成中に例外が発生しました。{FileName}", zipFileName);
-            BackupFileStore.DeleteSafely(zipFilePath);
+            this._logger?.LogError(ex, "圧縮ファイルの生成中に例外が発生しました。{FileName}", zipFileName);
+            BackupFileStore.DeleteFileSafely(zipFilePath);
             throw;
         }
 
         try
         {
-            this.UploadCore(zipFilePath);
+            BackupFileStore.PrepareDirectory(this._options.ArchiveDirectory);
+            BackupFileStore.DeleteFileSafely(zipFilePathToUpload);
+            File.Copy(zipFilePath, zipFilePathToUpload);
+            this._logger?.LogInformation("圧縮ファイルをアップロードしました。{FileName}", zipFileName);
+        }
+        catch (Exception ex)
+        {
+            this._logger?.LogError(ex, "圧縮ファイルのアップロード中に例外が発生しました。{FileName}", zipFileName);
+            throw;
         }
         finally
         {
-            BackupFileStore.DeleteSafely(zipFilePath);
+            BackupFileStore.DeleteFileSafely(zipFilePath);
+        }
+
+        try
+        {
+            this.PurgeStore(zipFilePath);
+        }
+        catch (Exception ex)
+        {
+            this._logger?.LogError(ex, "ストアのパージ中に例外が発生しました。");
+            throw;
         }
     }
 
@@ -72,7 +93,7 @@ internal class BackupFileStore : IBackupFileStore
     /// 安全にファイルを削除します。
     /// </summary>
     /// <param name="filePath">削除するファイルパス。</param>
-    private static void DeleteSafely(string filePath)
+    private static void DeleteFileSafely(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -89,6 +110,18 @@ internal class BackupFileStore : IBackupFileStore
             // 例外を握りつぶします。
         }
 #pragma warning restore CA1031 // 一般的な例外の種類はキャッチしません
+    }
+
+    /// <summary>
+    /// 指定されたディレクトリを準備します。
+    /// </summary>
+    /// <param name="directory">ディレクトリパス。</param>
+    private static void PrepareDirectory(string directory)
+    {
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
     }
 
     /// <summary>
@@ -153,14 +186,22 @@ internal class BackupFileStore : IBackupFileStore
     }
 
     /// <summary>
-    /// アップロードします。
+    /// ストアをパージします。
     /// </summary>
     /// <param name="zipFilePath">圧縮されたバックアップファイル。</param>
-    private void UploadCore(string zipFilePath)
+    private void PurgeStore(string zipFilePath)
     {
         var zipFileName = Path.GetFileName(zipFilePath);
-        var filePathToUpload = Path.Combine(this._options.ArchiveDirectory, zipFileName);
-        File.Copy(zipFilePath, filePathToUpload);
-        this._logger?.LogInformation("圧縮ファイルをアップロードしました。{FileName}", zipFileName);
+        var searchPattern = Regex.Replace(zipFileName, @"[\d]", _ => "?");
+        var foundFileInfos = Directory.EnumerateFiles(this._options.ArchiveDirectory, searchPattern, SearchOption.TopDirectoryOnly)
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(fi => fi.LastWriteTime)
+            .ToArray();
+        var fileInfosToDelete = foundFileInfos.Skip(3).ToArray(); // 今回分を含めて最新 3 世代を保有します。
+        foreach (var fi in fileInfosToDelete)
+        {
+            fi.Delete();
+            this._logger?.LogInformation("削除対象のファイルをストアから削除しました。{FilePath}", fi.Name);
+        }
     }
 }
