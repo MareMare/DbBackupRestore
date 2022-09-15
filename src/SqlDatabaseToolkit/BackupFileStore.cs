@@ -58,7 +58,7 @@ internal class BackupFileStore : IBackupFileStore
         }
 
         ZipFile.ExtractToDirectory(foundFileInfo.FullName, this._options.BackupDirectory, true);
-        this._logger?.LogInformation("圧縮ファイルをダウンロードしました。{FileName}", zipFileName);
+        this._logger?.LogInformation("圧縮ファイルをダウンロードしました。{FileName}", foundFileInfo.Name);
     }
 
     /// <inheritdoc />
