@@ -11,9 +11,6 @@ on:
     paths:
     - "src/**"
   
-env:
-  WORKING_DIRECTORY: src
-
 jobs:
   build:
     strategy:
@@ -28,7 +25,7 @@ jobs:
     uses: MareMare/ReusableWorkflows/.github/workflows/ci.net6.yml@main
     with:
       runner-os: ${{ matrix.os }}
-      working-directory: ${{ env.WORKING_DIRECTORY }}
-      testing-directory: ${{ env.WORKING_DIRECTORY }}
+      working-directory: src
+      testing-directory: src
       run-unittest: 'false'
       unittest-filter: ''
