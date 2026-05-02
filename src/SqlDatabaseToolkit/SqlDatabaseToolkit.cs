@@ -14,6 +14,7 @@ using System.Text;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+#pragma warning disable CA1873
 
 namespace SqlDatabaseToolkit;
 
@@ -41,6 +42,14 @@ internal class SqlDatabaseToolkit : ISqlDatabaseToolkit
         this._options = options.Value;
         this._logger = logger;
         this._connectionString = this._options.ConnectionString;
+
+        Console.WriteLine($"ConnectionString:      {this._options.ConnectionString}");
+        Console.WriteLine($"SqlServerAccount:      {this._options.SqlServerAccount}");
+        Console.WriteLine($"BackupDirectory:       {this._options.BackupDirectory}");
+        Console.WriteLine($"RestoreDirectory:      {this._options.RestoreDirectory}");
+        Console.WriteLine($"ArchiveDirectory:      {this._options.ArchiveDirectory}");
+        Console.WriteLine($"CommandTimeoutSeconds: {this._options.CommandTimeoutSeconds}");
+        Console.WriteLine($"Databases:             {string.Join(", ", this._options.Databases.Select(d => d.Name))}");
     }
 
     /// <inheritdoc />
