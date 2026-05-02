@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+#pragma warning disable CA1873
 
 namespace SqlDatabaseToolkit;
 
@@ -192,7 +193,7 @@ internal class BackupFileStore : IBackupFileStore
                     var sw = Stopwatch.StartNew();
                     this._logger?.LogDebug("バックアップファイルを圧縮します。{FileName}", fi.Name);
 
-                    stream = entry.Open();
+                    stream = await entry.OpenAsync(cancellationToken).ConfigureAwait(false);
                     backupFile = fi.Open(FileMode.Open, FileAccess.Read);
                     await backupFile.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
 
