@@ -9,7 +9,7 @@
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <PublishReadyToRun>true</PublishReadyToRun> 
     <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>true</PublishTrimmed> 
+    <PublishTrimmed>false</PublishTrimmed> 
   </PropertyGroup>
 
   <ItemGroup>
